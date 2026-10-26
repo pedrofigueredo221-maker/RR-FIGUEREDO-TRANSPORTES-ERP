@@ -1,4 +1,4 @@
-export const DEMO_DATA = {
+export const DEFAULT_DATA = {
   freights: [
     {
       id: 'f-1001',
@@ -81,3 +81,5 @@ export const DEMO_DATA = {
   ],
   categories: ['Combustível', 'Manutenção', 'Pedágio', 'Pneus', 'Documentação', 'Mecânico']
 };
+
+export const DEMO_DATA = DEFAULT_DATA;
