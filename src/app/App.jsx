@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { createSupabaseClient, isDemoMode, getAppConfig } from '../services/auth.js';
 import { readDemoState, writeDemoState } from '../services/storage.js';
 import { DEFAULT_DATA } from '../data/demoData.js';
 import LoginScreen from '../components/LoginScreen.jsx';
 import { Sidebar } from '../components/Sidebar.jsx';
 import DashboardPage from '../features/dashboard/DashboardPage.jsx';
+import FinanceiroPage from '../features/financeiro/FinanceiroPage.jsx';
 import FretesPage from '../features/fretes/FretesPage.jsx';
 import DespesasPage from '../features/despesas/DespesasPage.jsx';
 import ContasPage from '../features/contas/ContasPage.jsx';
@@ -13,6 +14,7 @@ import RelatoriosPage from '../features/relatorios/RelatoriosPage.jsx';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Balanço Geral', symbol: '▣' },
+  { id: 'financeiro', label: 'Financeiro', symbol: '💰' },
   { id: 'freights', label: 'Fretes', symbol: '🚚' },
   { id: 'expenses', label: 'Despesas', symbol: '🧾' },
   { id: 'accounts', label: 'Contas', symbol: '💳' },
@@ -22,6 +24,7 @@ const NAV_ITEMS = [
 
 const screenMap = {
   dashboard: DashboardPage,
+  financeiro: FinanceiroPage,
   freights: FretesPage,
   expenses: DespesasPage,
   accounts: ContasPage,
