@@ -1,27 +1,27 @@
 :root {
   color-scheme: light;
 
-  --bg: #f3f6f5;
+  --bg: #f4f7f6;
   --bg-2: #edf4f1;
   --panel: #ffffff;
-  --panel-2: #f8faf9;
+  --panel-2: #f7faf9;
   --card: #ffffff;
   --card-strong: #edf5f1;
   --line: #dfe8e5;
   --primary: #f7c969;
   --primary-strong: #e0a73a;
-  --secondary: #1d6a59;
-  --success: #1a8f68;
-  --warning: #d3992f;
-  --danger: #d94c4c;
-  --text: #1d2a2d;
-  --muted: #5f6f7a;
+  --secondary: #1e6a5a;
+  --success: #1c8d63;
+  --warning: #d9a443;
+  --danger: #d94a4a;
+  --text: #1c2a2d;
+  --muted: #667085;
   --shadow: rgba(18, 35, 30, 0.08);
 
   --rr-green: #163a32;
-  --rr-border: #e2e8e5;
+  --rr-border: #dfe7e5;
   --rr-surface: #ffffff;
-  --rr-muted: #5a6977;
+  --rr-muted: #586776;
 }
 
 * {
@@ -34,7 +34,7 @@ html, body, #root {
   height: 100%;
   background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
   color: var(--text);
-  font-family: Calibri, "Segoe UI", Tahoma, sans-serif;
+  font-family: Calibri, "Segoe UI", sans-serif;
 }
 
 body {
@@ -50,8 +50,8 @@ button {
 }
 
 img {
-  display: block;
   max-width: 100%;
+  display: block;
 }
 
 .app-shell {
@@ -98,7 +98,7 @@ img {
 .brand-title {
   font-size: 0.76rem;
   letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.68);
+  color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
 }
 
