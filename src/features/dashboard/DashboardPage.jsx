@@ -1,5 +1,5 @@
-import { money } from '../domain/validators.js';
-import { freightCommission, freightProfit, freightOperatingCosts } from '../domain/finance.js';
+import { money } from '../../domain/validators.js';
+import { freightCommission, freightProfit, freightOperatingCosts } from '../../domain/finance.js';
 
 export default function DashboardPage({ data }) {
   const freights = data.freights || [];
