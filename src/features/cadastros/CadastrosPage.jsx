@@ -1,4 +1,5 @@
-import { money } from '../../domain/validators.js';
+import { money } from '../../lib/formatters.js';
+import MetricCard from '../../components/MetricCard.jsx';
 
 export default function CadastrosPage({ data, readOnly }) {
   const employees = data.employees || [];

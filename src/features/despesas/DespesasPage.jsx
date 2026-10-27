@@ -1,4 +1,6 @@
-import { money } from '../../domain/validators.js';
+import { money } from '../../lib/formatters.js';
+import MetricCard from '../../components/MetricCard.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
 
 export default function DespesasPage({ data, onSave, readOnly }) {
   const rows = data.expenses || [];
@@ -20,8 +22,14 @@ export default function DespesasPage({ data, onSave, readOnly }) {
     onSave({ ...data, expenses: [draft, ...rows] });
   };
 
+  const totalExpenses = rows.reduce((sum, expense) => sum + Number(expense.value || 0), 0);
+
   return (
     <>
+      <div className="stats-grid">
+        <MetricCard label="Total despesas" value={money(totalExpenses)} hint={`${rows.length} registros cadastrados`} />
+      </div>
+
       <div className="toolbar">
         <div className="page-badge">Despesas</div>
         {!readOnly && <button type="button" className="primary-button" onClick={handleCreate}>Nova despesa</button>}
@@ -32,32 +40,36 @@ export default function DespesasPage({ data, onSave, readOnly }) {
           <h3>Controle financeiro</h3>
         </div>
 
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Descrição</th>
-                <th>Categoria</th>
-                <th>Fornecedor</th>
-                <th>Veículo</th>
-                <th>Valor</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((expense) => (
-                <tr key={expense.id}>
-                  <td>{expense.created}</td>
-                  <td>{expense.description}</td>
-                  <td>{expense.category}</td>
-                  <td>{expense.supplier}</td>
-                  <td>{expense.truck}</td>
-                  <td>{money(expense.value)}</td>
+        {rows.length === 0 ? (
+          <EmptyState message="Nenhuma despesa cadastrada." />
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Descrição</th>
+                  <th>Categoria</th>
+                  <th>Fornecedor</th>
+                  <th>Veículo</th>
+                  <th>Valor</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rows.map((expense) => (
+                  <tr key={expense.id}>
+                    <td>{expense.created}</td>
+                    <td>{expense.description}</td>
+                    <td>{expense.category}</td>
+                    <td>{expense.supplier}</td>
+                    <td>{expense.truck}</td>
+                    <td>{money(expense.value)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </>
   );
