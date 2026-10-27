@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { createSupabaseClient, isDemoMode, getAppConfig } from '../services/auth.js';
 import { readDemoState, writeDemoState } from '../services/storage.js';
-import { DEFAULT_DATA } from '../data/demoData.js';
+import { DEMO_DATA as DEFAULT_DATA } from '../data/demoData.js';
 import LoginScreen from '../components/LoginScreen.jsx';
 import { Sidebar } from '../components/Sidebar.jsx';
 import DashboardPage from '../features/dashboard/DashboardPage.jsx';
