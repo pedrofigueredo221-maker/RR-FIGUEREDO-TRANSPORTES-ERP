@@ -1,106 +1,103 @@
-/**
- * Regras financeiras do ERP.
- *
- * Semântica de negócio:
- * - comissão e bônus: pagamento ao motorista
- * - pedágio, combustível real e outros custos: custos da empresa
- * - lucro estimado: faturamento líquido menos custos da empresa e pagamento ao motorista
- */
+import { money } from '../../lib/formatters.js';
+import { freightDriverPayment, freightCompanyCosts, freightProfit } from '../../domain/finance.js';
 
-export const normalizeNumber = (value) => Math.max(0, Number(value || 0));
+export default function DashboardPage({ data }) {
+  const freights = data.freights || [];
+  const expenses = data.expenses || [];
 
-export function freightBase(f = {}) {
-  return Math.max(0, Number(f.value || 0) - Number(f.discount || 0) - (f.deductToll ? Number(f.toll || 0) : 0));
-}
+  const revenue = freights.reduce((sum, freight) => sum + Number(freight.value || 0), 0);
+  const driverPayments = freights.reduce((sum, freight) => sum + freightDriverPayment(freight), 0);
+  const companyCosts = freights.reduce((sum, freight) => sum + freightCompanyCosts(freight), 0);
+  const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.value || 0), 0);
+  const profit = freights.reduce((sum, freight) => sum + freightProfit(freight), 0) - totalExpenses;
+  const receivable = freights.reduce((sum, freight) => sum + Math.max(0, Number(freight.value || 0) - Number(freight.received || 0)), 0);
+  const payable = expenses.reduce((sum, expense) => sum + Math.max(0, Number(expense.value || 0) - (Array.isArray(expense.installments) ? expense.installments.reduce((t, s) => t + Number(s.paid || 0), 0) : 0)), 0);
 
-export function freightCommission(f = {}) {
-  const base = freightBase(f);
-  return f.commissionType === 'fixed' ? Number(f.commission || 0) : base * Number(f.commission || 0) / 100;
-}
+  const recent = [...freights].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, 6);
 
-export function freightBonus(f = {}) {
-  return Number(f.bonus || 0);
-}
+  return (
+    <>
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="label">Faturamento</div>
+          <div className="value">{money(revenue)}</div>
+          <div className="hint">{freights.length} fretes no período</div>
+        </div>
+        <div className="stat-card">
+          <div className="label">Pagamento ao motorista</div>
+          <div className="value">{money(driverPayments)}</div>
+          <div className="hint">Comissões e bônus</div>
+        </div>
+        <div className="stat-card">
+          <div className="label">Custos da empresa</div>
+          <div className="value">{money(companyCosts)}</div>
+          <div className="hint">Pedágio, combustível e outros custos</div>
+        </div>
+        <div className="stat-card">
+          <div className="label">Lucro estimado</div>
+          <div className="value">{money(profit)}</div>
+          <div className="hint">Faturamento menos custos e pagamento ao motorista</div>
+        </div>
+      </div>
 
-export function freightDriverPayment(f = {}) {
-  return freightCommission(f) + freightBonus(f);
-}
+      <section className="panel">
+        <div className="panel-header">
+          <h3>Últimas viagens</h3>
+        </div>
 
-export function freightCompanyCosts(f = {}) {
-  return Number(f.toll || 0) + Number(f.fuelActual || 0) + Number(f.otherCosts || 0);
-}
+        {recent.length === 0 ? (
+          <div className="empty-state">Nenhum frete encontrado.</div>
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Cliente</th>
+                  <th>Motorista</th>
+                  <th>Origem</th>
+                  <th>Destino</th>
+                  <th>Faturamento</th>
+                  <th>Pagamento</th>
+                  <th>Lucro</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recent.map((freight) => (
+                  <tr key={freight.id}>
+                    <td>{freight.date}</td>
+                    <td>{freight.customer}</td>
+                    <td>{freight.driver}</td>
+                    <td>{freight.origin}</td>
+                    <td>{freight.destination}</td>
+                    <td>{money(freight.value)}</td>
+                    <td>{money(freightDriverPayment(freight))}</td>
+                    <td>{money(freightProfit(freight))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
-export function freightCost(f = {}) {
-  return freightDriverPayment(f) + freightCompanyCosts(f);
-}
-
-export function freightProfit(f = {}) {
-  return Number(f.value || 0) - Number(f.discount || 0) - freightDriverPayment(f) - freightCompanyCosts(f);
-}
-
-export function freightNet(f = {}) {
-  return Number(f.value || 0) - Number(f.discount || 0) - freightCommission(f) - (f.deductToll ? Number(f.toll || 0) : 0) + freightBonus(f);
-}
-
-export function freightOperatingCosts(f = {}) {
-  return freightCompanyCosts(f);
-}
-
-export const PAYMENT_METHODS = ['PIX', 'Dinheiro', 'Crédito', 'Débito', 'TED', 'Boleto'];
-
-export const cents = (value) => Math.round(Number(value) * 100);
-export const amount = (value) => cents(value) / 100;
-
-export function accountTotals(total, movements = []) {
-  const totalCents = cents(total);
-  const paidCents = movements.reduce((sum, item) => sum + cents(item.amount), 0);
-  const balanceCents = totalCents - paidCents;
-
-  return {
-    total: totalCents / 100,
-    paid: paidCents / 100,
-    balance: Math.max(0, balanceCents) / 100,
-    closed: totalCents > 0 && balanceCents === 0,
-    status: balanceCents === 0 && totalCents > 0 ? 'Fechada' : 'Aberta'
-  };
-}
-
-export function addMovement(total, movements, entry) {
-  const value = cents(entry.amount);
-  const totals = accountTotals(total, movements);
-
-  if (totals.closed) throw new Error('Conta fechada — não é possível alterar.');
-  if (!PAYMENT_METHODS.includes(entry.method)) throw new Error('Selecione um meio de pagamento válido.');
-  if (!entry.date || !/^\d{4}-\d{2}-\d{2}$/.test(entry.date)) throw new Error('Informe a data da baixa.');
-  if (!Number.isFinite(value) || value <= 0) throw new Error('Informe um valor de baixa maior que zero.');
-  if (value > cents(totals.balance)) throw new Error('A baixa não pode ultrapassar o saldo restante.');
-
-  return [...movements, { ...entry, amount: value / 100 }];
-}
-
-export function cardInstallments(total, count, startDate) {
-  const totalCents = cents(total);
-
-  if (!Number.isInteger(count) || count < 1 || count > 120 || totalCents < count) {
-    throw new Error('Quantidade de parcelas inválida.');
-  }
-
-  const base = Math.floor(totalCents / count);
-
-  return Array.from({ length: count }, (_, index) => {
-    const due = new Date(`${startDate}T12:00:00`);
-    if (Number.isNaN(due.getTime())) throw new Error('Data inválida.');
-
-    const originalDay = due.getDate();
-    due.setDate(1);
-    due.setMonth(due.getMonth() + index);
-    const lastDay = new Date(due.getFullYear(), due.getMonth() + 1, 0).getDate();
-    due.setDate(Math.min(originalDay, lastDay));
-
-    return {
-      date: due.toISOString().slice(0, 10),
-      amount: (base + (index === count - 1 ? totalCents - base * count : 0)) / 100,
-      method: 'Crédito'
-    };
-  });
+      <section className="panel" style={{ marginTop: '1rem' }}>
+        <div className="panel-header">
+          <h3>Resumo financeiro</h3>
+        </div>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="label">A receber</div>
+            <div className="value">{money(receivable)}</div>
+            <div className="hint">Valores pendentes</div>
+          </div>
+          <div className="stat-card">
+            <div className="label">A pagar</div>
+            <div className="value">{money(payable)}</div>
+            <div className="hint">Despesas em aberto</div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
 }
