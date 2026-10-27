@@ -81,6 +81,7 @@ export default function App() {
 
   useEffect(() => {
     if (!session) return;
+
     if (demoMode) {
       const raw = readDemoState();
       setData(raw || DEFAULT_DATA);
