@@ -1,24 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createSupabaseClient, isDemoMode, getAppConfig } from '../services/auth.js';
 import { readDemoState, writeDemoState } from '../services/storage.js';
 import { DEFAULT_DATA } from '../data/demoData.js';
 import LoginScreen from '../components/LoginScreen.jsx';
-import { Sidebar } from '../components/Sidebar.jsx';
+import { AppLayout } from '../components/AppLayout.jsx';
 import DashboardPage from '../features/dashboard/DashboardPage.jsx';
 import FretesPage from '../features/fretes/FretesPage.jsx';
 import DespesasPage from '../features/despesas/DespesasPage.jsx';
 import ContasPage from '../features/contas/ContasPage.jsx';
 import CadastrosPage from '../features/cadastros/CadastrosPage.jsx';
 import RelatoriosPage from '../features/relatorios/RelatoriosPage.jsx';
-
-const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Balanço Geral', symbol: '▣' },
-  { id: 'freights', label: 'Fretes', symbol: '🚚' },
-  { id: 'expenses', label: 'Despesas', symbol: '🧾' },
-  { id: 'accounts', label: 'Contas', symbol: '💳' },
-  { id: 'cadastros', label: 'Cadastros', symbol: '👥' },
-  { id: 'reports', label: 'Relatórios', symbol: '📊' }
-];
+import { NAV_ITEMS, getPageMeta } from '../app/navigation.js';
 
 const screenMap = {
   dashboard: DashboardPage,
@@ -55,29 +47,31 @@ export default function App() {
       return undefined;
     }
 
-    let active = true;
-
+    let isActive = true;
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (active) {
+      if (isActive) {
         setSession(nextSession);
         setAuthReady(true);
       }
     });
 
     supabase.auth.getSession().then(({ data: result }) => {
-      if (!active) return;
+      if (!isActive) return;
       setSession(result?.session || null);
       setAuthReady(true);
+    }).catch(() => {
+      if (isActive) setAuthError('Não foi possível restaurar a sessão do Supabase.');
     });
 
     return () => {
-      active = false;
+      isActive = false;
       listener?.subscription?.unsubscribe?.();
     };
   }, [demoMode, supabase]);
 
   useEffect(() => {
     if (!session) return;
+
     if (demoMode) {
       const raw = readDemoState();
       setData(raw || DEFAULT_DATA);
@@ -170,19 +164,18 @@ export default function App() {
 
   const PageComponent = screenMap[activePage] || DashboardPage;
   const visitorMode = String((window.APP_CONFIG || {}).USER_EMAILS?.VISITANTES || '').toLowerCase() === String(session?.user?.email || '').toLowerCase();
+  const pageMeta = getPageMeta(activePage, visitorMode);
 
   return (
-    <div className="app-shell">
-      <Sidebar navItems={NAV_ITEMS} activeItem={activePage} onSelect={setActivePage} userEmail={session?.user?.email} />
-
-      <main className="main">
-        <div className="topbar">
-          <h1>{NAV_ITEMS.find((item) => item.id === activePage)?.label || 'Painel'}</h1>
-          <div className="page-badge">{visitorMode ? 'modo visitante' : 'operacional'}</div>
-        </div>
-
-        <PageComponent data={data} onSave={handleSave} readOnly={visitorMode} />
-      </main>
-    </div>
+    <AppLayout
+      navItems={NAV_ITEMS}
+      activePage={activePage}
+      onSelect={setActivePage}
+      userEmail={session?.user?.email}
+      pageTitle={pageMeta.title}
+      pageMeta={pageMeta}
+    >
+      <PageComponent data={data} onSave={handleSave} readOnly={visitorMode} />
+    </AppLayout>
   );
 }

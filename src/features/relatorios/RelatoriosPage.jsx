@@ -1,5 +1,6 @@
 import { money } from '../../lib/formatters.js';
 import { freightDriverPayment, freightProfit, freightCompanyCosts } from '../../domain/finance.js';
+import MetricCard from '../../components/MetricCard.jsx';
 
 export default function RelatoriosPage({ data }) {
   const freights = data.freights || [];
@@ -27,10 +28,10 @@ export default function RelatoriosPage({ data }) {
   return (
     <>
       <div className="stats-grid">
-        <div className="stat-card"><div className="label">Faturamento</div><div className="value">{money(totalRevenue)}</div><div className="hint">Receita bruta dos fretes</div></div>
-        <div className="stat-card"><div className="label">Pagamento ao motorista</div><div className="value">{money(totalPayments)}</div><div className="hint">Comissão + bônus</div></div>
-        <div className="stat-card"><div className="label">Custos da empresa</div><div className="value">{money(totalCompanyCosts)}</div><div className="hint">Pedágio, combustível e outros custos</div></div>
-        <div className="stat-card"><div className="label">Lucro estimado</div><div className="value">{money(totalProfit)}</div><div className="hint">Resultado líquido do período</div></div>
+        <MetricCard label="Faturamento" value={money(totalRevenue)} hint="Receita bruta dos fretes" />
+        <MetricCard label="Pagamento ao motorista" value={money(totalPayments)} hint="Comissão + bônus" />
+        <MetricCard label="Custos da empresa" value={money(totalCompanyCosts)} hint="Pedágio, combustível e outros custos" />
+        <MetricCard label="Lucro estimado" value={money(totalProfit)} hint="Resultado líquido do período" />
       </div>
 
       <section className="panel">

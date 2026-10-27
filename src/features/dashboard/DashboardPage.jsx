@@ -1,5 +1,7 @@
 import { money } from '../../lib/formatters.js';
 import { freightDriverPayment, freightCompanyCosts, freightProfit } from '../../domain/finance.js';
+import MetricCard from '../../components/MetricCard.jsx';
+import EmptyState from '../../components/EmptyState.jsx';
 
 export default function DashboardPage({ data }) {
   const freights = data.freights || [];
@@ -18,26 +20,10 @@ export default function DashboardPage({ data }) {
   return (
     <>
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="label">Faturamento</div>
-          <div className="value">{money(revenue)}</div>
-          <div className="hint">{freights.length} fretes no período</div>
-        </div>
-        <div className="stat-card">
-          <div className="label">Pagamento ao motorista</div>
-          <div className="value">{money(driverPayments)}</div>
-          <div className="hint">Comissões e bônus</div>
-        </div>
-        <div className="stat-card">
-          <div className="label">Custos da empresa</div>
-          <div className="value">{money(companyCosts)}</div>
-          <div className="hint">Pedágio, combustível e outros custos</div>
-        </div>
-        <div className="stat-card">
-          <div className="label">Lucro estimado</div>
-          <div className="value">{money(profit)}</div>
-          <div className="hint">Faturamento menos custos e pagamento ao motorista</div>
-        </div>
+        <MetricCard label="Faturamento" value={money(revenue)} hint={`${freights.length} fretes no período`} />
+        <MetricCard label="Pagamento ao motorista" value={money(driverPayments)} hint="Comissões e bônus" />
+        <MetricCard label="Custos da empresa" value={money(companyCosts)} hint="Pedágio, combustível e outros custos" />
+        <MetricCard label="Lucro estimado" value={money(profit)} hint="Faturamento menos custos e pagamento ao motorista" />
       </div>
 
       <section className="panel">
@@ -46,7 +32,7 @@ export default function DashboardPage({ data }) {
         </div>
 
         {recent.length === 0 ? (
-          <div className="empty-state">Nenhum frete encontrado.</div>
+          <EmptyState message="Nenhum frete encontrado." />
         ) : (
           <div className="table-wrap">
             <table>
@@ -85,17 +71,10 @@ export default function DashboardPage({ data }) {
         <div className="panel-header">
           <h3>Resumo financeiro</h3>
         </div>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="label">A receber</div>
-            <div className="value">{money(receivable)}</div>
-            <div className="hint">Valores pendentes</div>
-          </div>
-          <div className="stat-card">
-            <div className="label">A pagar</div>
-            <div className="value">{money(payable)}</div>
-            <div className="hint">Despesas em aberto</div>
-          </div>
+
+        <div className="stats-grid compact">
+          <MetricCard label="A receber" value={money(receivable)} hint="Valores pendentes" />
+          <MetricCard label="A pagar" value={money(payable)} hint="Despesas em aberto" />
         </div>
       </section>
     </>
